@@ -12,6 +12,8 @@ const handleSubmit = (event) => {
     completed: false
   }
   tasks.value.push(obj)
+  filterTasks.value.push(obj)
+  localStorage.setItem('tasks', JSON.stringify(tasks.value))
   event.target[0].value = ''
 }
 const handleStatusChange = (task) => {
@@ -78,6 +80,7 @@ onMounted(getData)
       placeholder="Enter Task"
       class="rounded text-center w-auto fw-bold fs-4"
       required
+      minlength="3"
     />
     <br />
     <button class="btn btn-success my-3 px-4">Add Task</button>

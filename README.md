@@ -1,4 +1,6 @@
-# package.json
+# Note
+All the tasks will be stored locally to localStorage after the first reload, so if you want to get tasks from API again just clear the local storage of your browser.
+## package.json
 
 This template should help get you started developing with Vue 3 in Vite.
 
