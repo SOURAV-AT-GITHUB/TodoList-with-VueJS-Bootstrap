@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted,watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 const tasks = ref([])
 const filterTasks = ref([])
 let isLoading = ref(true)
@@ -16,14 +16,17 @@ const handleSubmit = (event) => {
 }
 const handleStatusChange = (task) => {
   task.completed = !task.completed
+  localStorage.setItem('tasks', JSON.stringify(tasks.value))
 }
 const handleDelete = (id) => {
   tasks.value = tasks.value.filter((task) => task.id != id)
+  filterTasks.value = filterTasks.value.filter((task) => task.id != id)
+  localStorage.setItem('tasks', JSON.stringify(tasks.value))
 }
-const getCompletedTaskCount=()=>{
+const getCompletedTaskCount = () => {
   let count = 0
-  tasks.value.forEach(task=>{
-    if(task.completed) count++
+  tasks.value.forEach((task) => {
+    if (task.completed) count++
   })
   return count
 }
@@ -37,31 +40,35 @@ const fixData = (text) => {
   text = text.replace(/,(\s*[}\]])/g, '$1')
   return text
 }
-const fetchData = async () => {
-  try {
-    const response = await fetch('https://run.mocky.io/v3/16c30903-3570-44ea-a0e8-848cbeffc3a6')
-    let text = await response.text()
-  filterTasks.value =  tasks.value = JSON.parse(fixData(text))
-  } catch (error) {
-    console.log(error)
-    alert('Error getting data from server')
+const getData = async () => {
+  if (localStorage.getItem('tasks')) {
+    filterTasks.value = tasks.value = JSON.parse(localStorage.getItem('tasks'))
     isLoading.value = false
-  } finally {
-    isLoading.value = false
+  } else {
+    try {
+      const response = await fetch('https://run.mocky.io/v3/16c30903-3570-44ea-a0e8-848cbeffc3a6')
+      let text = await response.text()
+      filterTasks.value = tasks.value = JSON.parse(fixData(text))
+      localStorage.setItem('tasks', JSON.stringify(tasks.value))
+    } catch (error) {
+      console.log(error)
+      alert('Error getting data from server')
+      isLoading.value = false
+    } finally {
+      isLoading.value = false
+    }
   }
 }
-watch(filter,(newValue,Oldvalue)=>{
-  if(filter.value === 'All'){
+watch(filter, (newValue, Oldvalue) => {
+  if (filter.value === 'All') {
     filterTasks.value = tasks.value
-
-  }else if(filter.value === 'Pending'){
-    filterTasks.value = tasks.value.filter(e=>e.completed===false)
-  }
-  else if(filter.value === 'Completed'){
-    filterTasks.value = tasks.value.filter(e=>e.completed===true)
+  } else if (filter.value === 'Pending') {
+    filterTasks.value = tasks.value.filter((e) => e.completed === false)
+  } else if (filter.value === 'Completed') {
+    filterTasks.value = tasks.value.filter((e) => e.completed === true)
   }
 })
-onMounted(fetchData)
+onMounted(getData)
 </script>
 
 <template>
@@ -88,7 +95,8 @@ onMounted(fetchData)
     <h3>Completed Tasks : {{ getCompletedTaskCount() }}</h3>
     <table class="table table-bordered mt-3">
       <thead>
-        <tr>a
+        <tr>
+          a
           <th scope="col">#</th>
           <th scope="col">Task</th>
           <th scope="col">Status</th>
@@ -106,7 +114,13 @@ onMounted(fetchData)
           "
         >
           <td>{{ index + 1 }}</td>
-          <td :style="{ textDecoration: task.completed ? 'line-through' : 'none',textDecorationColor:'red' }" class="fs-4">
+          <td
+            :style="{
+              textDecoration: task.completed ? 'line-through' : 'none',
+              textDecorationColor: 'red'
+            }"
+            class="fs-4"
+          >
             {{ task.task }}
           </td>
           <td>
@@ -128,5 +142,3 @@ onMounted(fetchData)
   </div>
   <h3 v-else class="mt-2">No tasks available</h3>
 </template>
-
-
