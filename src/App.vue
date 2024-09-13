@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted,watch } from 'vue'
 const tasks = ref([])
+const filterTasks = ref([])
 let isLoading = ref(true)
 let filter = ref('All')
 const handleSubmit = (event) => {
@@ -26,6 +27,7 @@ const getCompletedTaskCount=()=>{
   })
   return count
 }
+
 const fixData = (text) => {
   // Replace single quotes with double quotes for string values
   text = text.replace(/'/g, '"')
@@ -39,7 +41,7 @@ const fetchData = async () => {
   try {
     const response = await fetch('https://run.mocky.io/v3/16c30903-3570-44ea-a0e8-848cbeffc3a6')
     let text = await response.text()
-    tasks.value = JSON.parse(fixData(text))
+  filterTasks.value =  tasks.value = JSON.parse(fixData(text))
   } catch (error) {
     console.log(error)
     alert('Error getting data from server')
@@ -48,6 +50,17 @@ const fetchData = async () => {
     isLoading.value = false
   }
 }
+watch(filter,(newValue,Oldvalue)=>{
+  if(filter.value === 'All'){
+    filterTasks.value = tasks.value
+
+  }else if(filter.value === 'Pending'){
+    filterTasks.value = tasks.value.filter(e=>e.completed===false)
+  }
+  else if(filter.value === 'Completed'){
+    filterTasks.value = tasks.value.filter(e=>e.completed===true)
+  }
+})
 onMounted(fetchData)
 </script>
 
@@ -62,20 +75,20 @@ onMounted(fetchData)
     <br />
     <button class="btn btn-success my-3 px-4">Add Task</button>
   </form>
+  <label class="fs-3">Filter :&nbsp; </label>
+  <select class="fs-4 rounded text-center" @change="(e) => (filter = e.target.value)">
+    <option value="All">All</option>
+    <option value="Pending">Pending</option>
+    <option value="Completed">Completed</option>
+  </select>
   <h1 v-if="isLoading">Loading</h1>
 
-  <div v-else-if="tasks.length > 0">
+  <div v-else-if="filterTasks.length > 0">
     <h3 class="mb-2">Total Tasks : {{ tasks.length }}</h3>
     <h3>Completed Tasks : {{ getCompletedTaskCount() }}</h3>
-    <label class="fs-3">Filter :&nbsp; </label>
-    <select class="fs-4 rounded text-center" @change="(e) => (filter = e.target.value)">
-      <option value="All">All</option>
-      <option value="Pending">Pending</option>
-      <option value="Completed">Completed</option>
-    </select>
     <table class="table table-bordered mt-3">
       <thead>
-        <tr>
+        <tr>a
           <th scope="col">#</th>
           <th scope="col">Task</th>
           <th scope="col">Status</th>
@@ -84,7 +97,7 @@ onMounted(fetchData)
       </thead>
       <tbody>
         <tr
-          v-for="(task, index) in tasks"
+          v-for="(task, index) in filterTasks"
           :key="task.id"
           v-show="
             filter == 'All' ||
