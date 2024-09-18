@@ -4,6 +4,7 @@ const tasks = ref([])
 const filterTasks = ref([])
 let isLoading = ref(true)
 let filter = ref('All')
+let sort = ref(false)
 const handleSubmit = (event) => {
   event.preventDefault()
   let obj = {
@@ -12,7 +13,6 @@ const handleSubmit = (event) => {
     completed: false
   }
   tasks.value.push(obj)
-  filterTasks.value.push(obj)
   localStorage.setItem('tasks', JSON.stringify(tasks.value))
   event.target[0].value = ''
 }
@@ -61,7 +61,37 @@ const getData = async () => {
     }
   }
 }
-watch(filter, (newValue, Oldvalue) => {
+const handleSort = ()=>{
+  console.log(sort.value);
+  
+  if (sort.value===true){
+    filterTasks.value.sort((a,b)=>{
+      if(a.taks > b.taks) return 1
+      if(a.task <b.task) return -1
+      // sort.value = false
+      return 0
+    }) 
+  }
+   if(sort.value ===false){
+    filterTasks.value.sort((a,b)=>{
+      if(a.taks < b.taks) return 1
+      if(a.task >b.task) return -1
+      // sort.value = true
+      return 0
+    })
+  }
+  sort.value =!sort.value
+}
+watch(filter, (newValue) => {
+  if (filter.value === 'All') {
+    filterTasks.value = tasks.value
+  } else if (filter.value === 'Pending') {
+    filterTasks.value = tasks.value.filter((e) => e.completed === false)
+  } else if (filter.value === 'Completed') {
+    filterTasks.value = tasks.value.filter((e) => e.completed === true)
+  }
+})
+watch(tasks,(newValue)=>{
   if (filter.value === 'All') {
     filterTasks.value = tasks.value
   } else if (filter.value === 'Pending') {
@@ -85,6 +115,7 @@ onMounted(getData)
     <br />
     <button class="btn btn-success my-3 px-4">Add Task</button>
   </form>
+  <button @click="(e)=>handleSort()" type='button'>Sort</button>
   <label class="fs-3">Filter :&nbsp; </label>
   <select class="fs-4 rounded text-center" @change="(e) => (filter = e.target.value)">
     <option value="All">All</option>
